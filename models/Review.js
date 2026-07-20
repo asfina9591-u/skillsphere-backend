@@ -1,33 +1,31 @@
-const mongoose = require("mongoose");
+const express = require("express");
+const router = express.Router();
+const { check } = require("express-validator");
+const { createReview, getReviews } = require("../controllers/reviewController");
+const protect = require("../middleware/authMiddleware");
 
-const reviewSchema = new mongoose.Schema(
-{
-    reviewer:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        required:true
-    },
-    receiver:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"User",
-        required:true
-    },
-    contract:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Contract"
-    },
-    rating:{
-        type:Number,
-        required:true,
-        min:1,
-        max:5
-    },
-    comment:{
-        type:String,
-        required:true
-    }
-},
-{timestamps:true}
+// POST / - Create a new review (protected + validated)
+router.post(
+  "/",
+  protect,
+  [
+    check("rating")
+      .isInt({ min: 1, max: 5 })
+      .withMessage("Rating must be between 1 and 5"),
+    check("comment")
+      .notEmpty()
+      .withMessage("Comment is required"),
+    check("receiver")
+      .isMongoId()
+      .withMessage("Invalid receiver ID"),
+    check("contract")
+      .isMongoId()
+      .withMessage("Invalid contract ID")
+  ],
+  createReview
 );
 
-module.exports = mongoose.model("Review", reviewSchema);
+// GET /:userId - Fetch reviews for a user (protected)
+router.get("/:userId", protect, getReviews);
+
+module.exports = router;

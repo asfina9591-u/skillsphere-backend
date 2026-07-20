@@ -1,9 +1,7 @@
-const Notification = require("../models/Notification");
-
 const sendNotification = async (userId, title, message, type = "proposal") => {
   try {
     await Notification.create({
-      user: userId,
+      userId: userId,   // ✅ matches schema field name
       title,
       message,
       type,
